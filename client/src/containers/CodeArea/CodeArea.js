@@ -63,16 +63,13 @@ class CodeArea extends Component{
         if(this.state.editing){ //SOLVES TYPE GLITCH
             //console.log("socket emitted")
             //emit socket for code update
-
             let saveData = {
                 code: this.state.code,
                 roomId: this.state.roomId,
                 lang: this.state.language,
                 input: this.state.stdin
-            }    
-            
+            }                
             this.socket.emit("code_updated", saveData); 
-            
             axios.post('http://localhost:5000/save_data', saveData)
                 .then(res => {
                     console.log(res.data);
@@ -80,7 +77,6 @@ class CodeArea extends Component{
                 .catch(e => {
                     console.log(e);
                 });
-        
         }
     }
 
@@ -89,12 +85,11 @@ class CodeArea extends Component{
             mode: mode,
             language: lang,
             code: defaultCode
-            //.length > this.state.code.length ? defaultCode : this.state.code
         })
     }
 
     inputHandler = (input) => {
-        console.log('input',input);
+       
         if(input){
             this.setState({
                 stdin: input
@@ -125,15 +120,45 @@ class CodeArea extends Component{
                   editing:true
               })
           }
-          data.readAsText(file)
-         // data.append('file', file);
-          // axios.post('/files', data)..
-          
+          data.readAsText(file)          
         }
     }
 
     fileDownloadHandler = () => {
-        
+        var data = new Blob([this.state.code], {type: 'text/plain'});
+        var codeURL = window.URL.createObjectURL(data);
+        var tempLink = document.createElement('a');
+        tempLink.href = codeURL;
+    
+        switch(this.state.language) {
+            case 'C':    
+                tempLink.setAttribute('download', 'file.c');
+                break;
+            case 'C++':
+                tempLink.setAttribute('download', 'file.cpp');
+                break;
+            case 'Javascript':
+                tempLink.setAttribute('download', 'file.js');
+                break;
+            case 'Java':
+                tempLink.setAttribute('download', 'file.java');
+                break;
+            case 'C#':
+                tempLink.setAttribute('download', 'file.cs');
+                break;
+            case 'Ruby':
+                tempLink.setAttribute('download', 'file.rb');
+                break;
+            case 'Python2':
+                tempLink.setAttribute('download', 'file.py');
+                break;
+            case 'Python3':
+                tempLink.setAttribute('download', 'file.py');
+                break;
+            default:
+                tempLink.setAttribute('download', 'file.txt');
+        }
+        tempLink.click();
     }
 
     //LIFECYCLE METHODS AND THEIR HELPER FUNCTIONS ARE DEFINED BELOW
@@ -159,17 +184,7 @@ class CodeArea extends Component{
         
     }
 
-    componentDidUpdate(){
-        this.socket.on("process code", (response) => {
-            this.updateCodeFromSockets(response.data.code, response.data.input, response.data.lang)
-            //console.log("socket received")  
-        })
-    }
-
     updateCodeFromSockets = (code,input,lang) => {  
-        //SETS NEW STATE. CHANGES EDITING TO FALSE. IMPORTANT! 
-        //SOLVES TYPE GLITCH
-             console.log('updateCodeFRomSockets')
             this.setState({
                 input:input,
                 language:lang,
@@ -185,7 +200,7 @@ class CodeArea extends Component{
             mode: this.state.mode,
             theme: this.state.theme
         }
-        // console.log(this.state.code)
+
         return (
             <div className="main2">
             <nav className="navbar navbar-inverse">
@@ -210,7 +225,7 @@ class CodeArea extends Component{
        <ModeSelector change = {this.modeSelectHandler} lang={this.state.language} ></ModeSelector>
         <ThemeSelector change = {this.themeSelectorHandler}></ThemeSelector>
         <FileUpload uploadFile = {this.fileUploadHandler}/>  
-       
+        <FileDownload downloadFile = {this.fileDownloadHandler} />
 
         <div className={classes.CodeArea}>
             <CodeMirror 
